@@ -21,6 +21,7 @@
                         <ul>
                             <li>Java-style logging with line numbers</li>
                             <li>Version number in project file instead of .cs file</li>
+                            <li>Curly braces in 1TBS</li>
                             <li>Some defaults changed</li>
                         </ul>
                         Consider using the linked template builder above for the best community support.
@@ -50,7 +51,7 @@
                     <label for="metadata-modname">Mod Name</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input class="form-control" type="text" id="metadata-guid" value="com.myname.mymod" required />
+                    <input class="form-control" type="text" id="metadata-guid" value="myname.mymod" required />
                     <label for="metadata-guid">GUID - Uniquely identifies your mod</label>
                 </div>
                 <div class="form-floating mb-3">
@@ -65,17 +66,17 @@
                     <input class="form-control" type="text" id="metadata-version" value="0.1.0" required />
                     <label for="metadata-version">Version</label>
                 </div>
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input saveable" type="checkbox" id="metadata-generate-changelogs" />
-                    <label class="form-check-label" for="metadata-generate-changelogs">Generate Changelog Folders</label>
-                </div>
 
-                <div class="card mb-3" hidden>
+                <div class="card mb-3">
                     <div class="card-body">
                         <div class="card-title">Other settings</div>
-                        <div class="form-check form-switch mb-3">
+                        <div class="form-check form-switch mb-3" hidden>
                             <input class="form-check-input saveable" type="checkbox" id="other-settings-create-git-repo" />
                             <label class="form-check-label" for="other-settings-create-git-repo">Generate Git repository in project directory</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input saveable" type="checkbox" id="metadata-generate-changelogs" />
+                            <label class="form-check-label" for="metadata-generate-changelogs">Generate Changelog Folders</label>
                         </div>
                     </div>
                 </div>
@@ -106,10 +107,10 @@
 
             const authorStripped = () => authorElement.value.toLowerCase().replace(/[^a-z0-9]/gi, "");
             const modNameStripped = () => modNameElement.value.replace(/[^a-z0-9]/gi, "");
-            const updateGuid = () => modGuidElement.value = `com.${authorStripped()}.${modNameStripped().toLowerCase()}`;
+            const updateGuid = () => modGuidElement.value = `${authorStripped()}.${modNameStripped().toLowerCase()}`;
             const isChecked = element => element.checked;
             const isUseKitchenPrefix = () => isChecked(useKitchenPrefixElement);
-            const ShouldGenerateChangelogs = () => isChecked(generateChangelogElement);
+            const shouldGenerateChangelogs = () => isChecked(generateChangelogElement);
             const updateNamespace = () => namespaceElement.value = `${isUseKitchenPrefix() ? "Kitchen" : ""}${modNameStripped()}`;
 
             authorElement.addEventListener("keyup", updateGuid);
@@ -158,14 +159,16 @@
                 const namespace = namespaceElement.value;
                 const unityPath = `${modName}/UnityProject - ${namespace}/`;
                 for (const filename of unityProjectFiles) {
-                    if (filename == 'templategitignore')
-                    {
+                    if (filename === "templategitignore") {
                         zip.file(`${unityPath}.gitignore`, await fetchText(`bin/modules/files/UnityProject/${filename}`));
-                    }else
-                    {
+                    } else {
                         zip.file(`${unityPath}${filename}`, await fetchText(`bin/modules/files/UnityProject/${filename}`));
                     }
                 }
+                const commonMaterials = await fetchText(`bin/modules/files/CommonMaterials.cs`);
+                const refs = await fetchText(`bin/modules/files/Refs.cs`);
+                zip.file(`${modName}/CommonMaterials.cs`, replacePlaceholdersInModCs(commonMaterials));
+                zip.file(`${modName}/Refs.cs`, replacePlaceholdersInModCs(refs));
                 return zip;
             };
 
@@ -181,8 +184,7 @@
                 zip.file(`${modName}/.gitignore`, gitignore);
                 zip.file(`${modName}/${modNameStripped()}.csproj`, replacePlaceholdersInProjectFile(projectFile));
 
-                if (ShouldGenerateChangelogs())
-                {
+                if (shouldGenerateChangelogs()) {
                     zip.folder(`${modName}/Changelogs`);
                     zip.folder(`${modName}/Changelogs/Github`);
                     zip.folder(`${modName}/Changelogs/Workshop`);
@@ -198,7 +200,9 @@
                 .replaceAll("My Name", authorElement.value)
                 .replaceAll("0.1.0", versionElement.value);
 
-            const replacePlaceholdersInProjectFile = (projectFile) => projectFile.replaceAll("UnityProject", `UnityProject - ${namespaceElement.value}`);
+            const replacePlaceholdersInProjectFile = (projectFile) => projectFile
+                .replaceAll("UnityProject", `UnityProject - ${namespaceElement.value}`)
+                .replaceAll("0.1.0", versionElement.value);
 
             const addGitFilesIfNeeded = async (zip) => {
                 if (isChecked(generateGitRepoElement)) {

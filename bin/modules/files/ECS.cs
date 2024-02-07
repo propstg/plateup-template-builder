@@ -1,32 +1,33 @@
 using Kitchen;
 using KitchenMods;
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace KitchenMyMod
-{
-    public class Mod : GameSystemBase, IModSystem
-    {
+namespace KitchenMyMod {
+
+    public class Mod : GameSystemBase, IModSystem {
+
         public const string MOD_GUID = "com.example.mymod";
         public const string MOD_NAME = "My Mod";
-        public const string MOD_VERSION = "0.1.0";
         public const string MOD_AUTHOR = "My Name";
+        public static readonly string MOD_VERSION = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.ToString();
 
-        protected override void Initialise()
-        {
-            LogWarning($"{MOD_GUID} v{MOD_VERSION} in use!");
+        protected override void Initialise() {
+            Log($"{MOD_GUID} v{MOD_VERSION} in use!");
         }
 
-        protected override void OnUpdate()
-        {
+        protected override void OnUpdate() {
         }
-        
-        #region Logging
-        public static void LogInfo(string _log) { Debug.Log($"[{MOD_NAME}] " + _log); }
-        public static void LogWarning(string _log) { Debug.LogWarning($"[{MOD_NAME}] " + _log); }
-        public static void LogError(string _log) { Debug.LogError($"[{MOD_NAME}] " + _log); }
-        public static void LogInfo(object _log) { LogInfo(_log.ToString()); }
-        public static void LogWarning(object _log) { LogWarning(_log.ToString()); }
-        public static void LogError(object _log) { LogError(_log.ToString()); }
-        #endregion
+            
+        [Conditional("DEBUG")]
+        public static void DebugLog(object message, [CallerFilePath] string callingFilePath = "", [CallerLineNumber] int lineNumber = 0, [CallerMemberName] string caller = null) {
+            Log(message, callingFilePath, lineNumber, caller);
+        }
+
+        public static void Log(object message, [CallerFilePath] string callingFilePath = "", [CallerLineNumber] int lineNumber = 0, [CallerMemberName] string caller = null) {
+            UnityEngine.Debug.Log($"[{MOD_ID}] [{caller}({callingFilePath}:{lineNumber})] {message}");
+        }
     }
 }
