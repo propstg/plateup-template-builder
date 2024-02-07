@@ -3,7 +3,6 @@ using KitchenMods;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 
 namespace KitchenMyMod {
 
@@ -27,7 +26,7 @@ namespace KitchenMyMod {
         }
 
         public static void Log(object message, [CallerFilePath] string callingFilePath = "", [CallerLineNumber] int lineNumber = 0, [CallerMemberName] string caller = null) {
-            UnityEngine.Debug.Log($"[{MOD_ID}] [{caller}({callingFilePath}:{lineNumber})] {message}");
+            UnityEngine.Debug.Log($"[{MOD_GUID}] [{caller}({callingFilePath}:{lineNumber})] {message}");
         }
     }
 }

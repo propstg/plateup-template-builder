@@ -1,5 +1,4 @@
 using KitchenLib;
-using KitchenLib.Logging;
 using KitchenLib.Logging.Exceptions;
 using KitchenMods;
 using System.Diagnostics;
